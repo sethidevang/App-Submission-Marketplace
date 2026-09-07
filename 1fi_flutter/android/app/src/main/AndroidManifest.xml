@@ -1,4 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Needed at runtime for the app's own network calls (product API,
+         product images) — not just for the Flutter tool's dev connection,
+         which is what android/app/src/debug/AndroidManifest.xml grants. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="onefi_marketplace"
         android:name="${applicationName}"
