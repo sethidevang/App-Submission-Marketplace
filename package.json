@@ -1,0 +1,16 @@
+{
+  "name": "1fi-marketplace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local server for the 1Fi Marketplace prototype, backed by Postgres (Neon).",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "psql \"$DATABASE_URL\" -f db/schema.sql && psql \"$DATABASE_URL\" -f db/seed.sql"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "express": "^4.19.2",
+    "pg": "^8.12.0"
+  }
+}
