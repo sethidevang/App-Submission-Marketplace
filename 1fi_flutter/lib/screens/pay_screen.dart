@@ -5,10 +5,11 @@ import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../state/app_state.dart';
 import '../theme/context_ext.dart';
-import '../theme/tokens.dart';
 import '../util/format.dart';
+import '../util/share_product.dart';
 import '../widgets/common_buttons.dart';
 import '../widgets/confirm_sheet.dart';
+import '../widgets/product_image.dart';
 
 class PayScreen extends StatelessWidget {
   final Product product;
@@ -27,6 +28,10 @@ class PayScreen extends StatelessWidget {
     final minMonthly = price / tenures.last;
     final plansCollapsed = app.plansCollapsed(p);
     final selectedMonthly = price / selTenure;
+    final selectedForImage = p.imageVariantType != null
+        ? app.selectedVariant(p, p.imageVariantType!)
+        : null;
+    final currentImageSource = p.variantImageUrl(selectedForImage) ?? p.image;
 
     return Scaffold(
       backgroundColor: c.bg,
@@ -83,23 +88,15 @@ class PayScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          Container(
+                          SizedBox(
                             height: 168,
                             width: double.infinity,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
+                            child: ProductImage(
+                              product: p,
+                              selectedColor: selectedForImage,
+                              iconSize: 66,
                               borderRadius: BorderRadius.circular(16),
-                              gradient: LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  hexToColor(p.grad[0]),
-                                  hexToColor(p.grad[1]),
-                                ],
-                              ),
                             ),
-                            child: Icon(iconForProduct(p.icon),
-                                size: 66, color: Colors.white),
                           ),
                         ],
                       ),
@@ -118,7 +115,12 @@ class PayScreen extends StatelessWidget {
                           ),
                         ),
                         CircleIconButton(
-                            icon: Icons.share_outlined, onTap: () {}),
+                          icon: Icons.share_outlined,
+                          onTap: () => shareProduct(
+                            p,
+                            imageSource: currentImageSource,
+                          ),
+                        ),
                       ],
                     ),
                     if (vSummary.isNotEmpty)

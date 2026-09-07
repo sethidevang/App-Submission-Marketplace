@@ -5,6 +5,7 @@ import '../models/product.dart';
 import '../theme/context_ext.dart';
 import '../theme/tokens.dart';
 import '../util/format.dart';
+import 'product_image.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -36,22 +37,14 @@ class ProductCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                height: 96,
+              SizedBox(
+                height: 140,
                 width: double.infinity,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      hexToColor(product.grad[0]),
-                      hexToColor(product.grad[1]),
-                    ],
-                  ),
-                ),
                 child: Stack(
                   children: [
+                    Positioned.fill(
+                      child: ProductImage(product: product, iconSize: 44),
+                    ),
                     if (pct > 0)
                       Positioned(
                         top: 8,
@@ -66,29 +59,25 @@ class ProductCard extends StatelessWidget {
                           child: Text(
                             '$pct% OFF',
                             style: TextStyle(
-                              fontSize: 10,
+                              fontSize: 9,
                               fontWeight: FontWeight.w800,
                               color: c.gold,
                             ),
                           ),
                         ),
                       ),
-                    Center(
-                      child: Icon(iconForProduct(product.icon),
-                          size: 38, color: Colors.white),
-                    ),
                   ],
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(12, 9, 12, 9),
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       product.brand.toUpperCase(),
                       style: TextStyle(
-                        fontSize: 10.5,
+                        fontSize: 9,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.4,
                         color: c.text3,
@@ -100,19 +89,19 @@ class ProductCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13.5,
+                        fontSize: 12,
                         fontWeight: FontWeight.w700,
                         color: c.text,
-                        height: 1.3,
+                        height: 1.25,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Row(
                       children: [
                         Text(
                           rupees(product.price),
                           style: TextStyle(
-                            fontSize: 15,
+                            fontSize: 13.5,
                             fontWeight: FontWeight.w800,
                             color: c.text,
                           ),
@@ -122,7 +111,7 @@ class ProductCard extends StatelessWidget {
                           Text(
                             rupees(product.mrp),
                             style: TextStyle(
-                              fontSize: 11.5,
+                              fontSize: 10,
                               color: c.text3,
                               decoration: TextDecoration.lineThrough,
                             ),
@@ -130,10 +119,10 @@ class ProductCard extends StatelessWidget {
                         ],
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 3),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                          horizontal: 7, vertical: 3),
                       decoration: BoxDecoration(
                         color: c.accent50,
                         borderRadius: BorderRadius.circular(7),
@@ -141,7 +130,7 @@ class ProductCard extends StatelessWidget {
                       child: Text(
                         'EMI from ${rupees(product.price / product.maxTenure)}/mo',
                         style: TextStyle(
-                          fontSize: 10.5,
+                          fontSize: 9.5,
                           fontWeight: FontWeight.w700,
                           color: c.accent600,
                         ),
@@ -153,8 +142,8 @@ class ProductCard extends StatelessWidget {
                         children: colorVariant.options
                             .take(4)
                             .map((o) => Container(
-                                  width: 11,
-                                  height: 11,
+                                  width: 10,
+                                  height: 10,
                                   margin: const EdgeInsets.only(right: 4),
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,

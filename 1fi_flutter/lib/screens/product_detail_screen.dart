@@ -5,9 +5,11 @@ import 'package:provider/provider.dart';
 import '../models/product.dart';
 import '../state/app_state.dart';
 import '../theme/context_ext.dart';
-import '../theme/tokens.dart';
 import '../util/format.dart';
+import '../util/share_product.dart';
 import '../widgets/common_buttons.dart';
+import '../widgets/fullscreen_image_viewer.dart';
+import '../widgets/product_image.dart';
 import '../widgets/variant_selectors.dart';
 import 'pay_screen.dart';
 
@@ -30,6 +32,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final price = app.currentPrice(p);
     final pct = p.discountPct;
     final emiTenures = kTenures.where((t) => t <= p.maxTenure).toList();
+    final selectedForImage = p.imageVariantType != null
+        ? app.selectedVariant(p, p.imageVariantType!)
+        : null;
+    final currentImageSource = p.variantImageUrl(selectedForImage) ?? p.image;
 
     return Scaffold(
       backgroundColor: c.bg,
@@ -62,23 +68,27 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      height: 190,
-                      width: double.infinity,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(22),
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            hexToColor(p.grad[0]),
-                            hexToColor(p.grad[1]),
-                          ],
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).push(
+                        PageRouteBuilder(
+                          opaque: false,
+                          barrierColor: Colors.black,
+                          pageBuilder: (_, _, _) => FullscreenImageViewer(
+                            product: p,
+                            selectedColor: selectedForImage,
+                          ),
                         ),
                       ),
-                      child: Icon(iconForProduct(p.icon),
-                          size: 76, color: Colors.white),
+                      child: SizedBox(
+                        height: 190,
+                        width: double.infinity,
+                        child: ProductImage(
+                          product: p,
+                          selectedColor: selectedForImage,
+                          iconSize: 76,
+                          borderRadius: BorderRadius.circular(22),
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -104,7 +114,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         ),
                         CircleIconButton(
                           icon: Icons.share_outlined,
-                          onTap: () {},
+                          onTap: () => shareProduct(
+                            p,
+                            imageSource: currentImageSource,
+                          ),
                         ),
                       ],
                     ),
@@ -220,44 +233,40 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    SizedBox(
-                      height: 62,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: emiTenures.length,
-                        separatorBuilder: (context, index) => const SizedBox(width: 8),
-                        itemBuilder: (context, i) {
-                          final t = emiTenures[i];
-                          final monthly = price / t;
-                          return Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 9),
-                            decoration: BoxDecoration(
-                              color: c.surfaceTint,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  '$t mo',
-                                  style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: c.text),
-                                ),
-                                Text(
-                                  '${rupees(monthly)}/mo',
-                                  style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: c.accent600),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: emiTenures.map((t) {
+                        final monthly = price / t;
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 9),
+                          decoration: BoxDecoration(
+                            color: c.surfaceTint,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: c.border, width: 1.5),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '$t mo',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: c.text),
+                              ),
+                              Text(
+                                '${rupees(monthly)}/mo',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: c.accent600),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
                     ),
                     const SizedBox(height: 8),
                     Text(

@@ -25,7 +25,7 @@ app.get('/api/products', async (req, res) => {
   console.log(`[${new Date().toISOString()}] GET /api/products`);
   try {
     const { rows } = await pool.query(
-      'SELECT id, brand, name, category, icon, gradient_from, gradient_to, ' +
+      'SELECT id, brand, name, category, icon, image, gradient_from, gradient_to, ' +
       'price, mrp, max_tenure, rating, reviews, variants, highlights ' +
       'FROM products ORDER BY sort_order'
     );
@@ -35,6 +35,7 @@ app.get('/api/products', async (req, res) => {
       name: r.name,
       category: r.category,
       icon: r.icon,
+      image: r.image,
       grad: [r.gradient_from, r.gradient_to],
       price: r.price,
       mrp: r.mrp,

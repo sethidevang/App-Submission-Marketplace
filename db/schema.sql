@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS products (
   name          text NOT NULL,
   category      text NOT NULL,
   icon          text NOT NULL,
+  image         text NOT NULL DEFAULT '',
   gradient_from text NOT NULL,
   gradient_to   text NOT NULL,
   price         integer NOT NULL,
