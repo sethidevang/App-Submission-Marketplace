@@ -48,13 +48,17 @@ class ShopTabs extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    Text(
-                      kShopTabLabels[tab]!,
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        color: isActive ? c.accent500 : c.text2,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        kShopTabLabels[tab]!,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: isActive ? c.accent500 : c.text2,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 5),

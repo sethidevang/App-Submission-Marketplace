@@ -63,8 +63,9 @@ class ChipBubble extends StatelessWidget {
   }
 }
 
-/// A filled color swatch with an iOS-style selection ring, for the Color
-/// variant axis. The name wraps below it (never truncated).
+/// A rounded-rectangle chip holding a small color swatch and the option's
+/// name side by side. Selection highlights the whole chip (tint + border),
+/// matching [ChipBubble] rather than ringing the swatch on its own.
 class ColorBubble extends StatelessWidget {
   final String label;
   final Color color;
@@ -84,45 +85,39 @@ class ColorBubble extends StatelessWidget {
     final c = context.colors;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
-      child: Padding(
-        padding: const EdgeInsets.all(2),
-        child: SizedBox(
-          width: 78,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
-                  boxShadow: selected
-                      ? [
-                          BoxShadow(
-                            color: c.bg,
-                            blurRadius: 0,
-                            spreadRadius: 4,
-                          ),
-                          BoxShadow(
-                            color: c.accent500,
-                            blurRadius: 0,
-                            spreadRadius: 2,
-                          ),
-                        ]
-                      : null,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 11, color: c.text2, height: 1.25),
-              ),
-            ],
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+          color: selected ? c.accent50 : c.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: selected ? c.accent500 : c.border,
+            width: 1.5,
           ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.black.withValues(alpha: 0.08)),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: selected ? c.accent600 : c.text,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -181,8 +176,8 @@ class VariantSection extends StatelessWidget {
           const SizedBox(height: 10),
           if (variant.isColor)
             Wrap(
-              spacing: 6,
-              runSpacing: 8,
+              spacing: 10,
+              runSpacing: 10,
               children: variant.options.map((o) {
                 return ColorBubble(
                   label: o.label,

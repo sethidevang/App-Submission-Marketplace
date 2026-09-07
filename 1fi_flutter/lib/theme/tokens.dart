@@ -38,7 +38,7 @@ class AppColors {
   });
 
   static const light = AppColors(
-    bg: Color(0xFFF3F1F9),
+    bg: Color(0xFFF6F6F6),
     surface: Color(0xFFFFFFFF),
     surfaceTint: Color(0xFFEFEAFB),
     track: Color(0xFFEEEAF7),

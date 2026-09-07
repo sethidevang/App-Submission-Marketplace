@@ -39,16 +39,55 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Stale-while-revalidate: paint instantly from whatever was cached on a
+  /// previous launch (if anything), then refresh from the network in the
+  /// background. Only shows the loading/error state when there's truly
+  /// nothing on screen yet.
   Future<void> loadProducts() async {
-    status = ProductsStatus.loading;
-    notifyListeners();
-    try {
-      products = await _api.fetchProducts();
+    final cached = await _api.loadCachedProducts();
+    if (cached != null && cached.isNotEmpty) {
+      products = cached;
       status = ProductsStatus.ready;
+      notifyListeners();
+      _precacheImages(cached);
+    } else {
+      status = ProductsStatus.loading;
+      notifyListeners();
+    }
+
+    try {
+      final fresh = await _api.fetchProducts();
+      products = fresh;
+      status = ProductsStatus.ready;
+      _precacheImages(fresh);
     } catch (_) {
-      status = ProductsStatus.error;
+      if (cached == null || cached.isEmpty) {
+        status = ProductsStatus.error;
+      }
+      // Otherwise keep showing the cached catalog silently — a transient
+      // network blip shouldn't yank the screen out from under the user.
     }
     notifyListeners();
+  }
+
+  /// Kicks off a network fetch for every product/variant photo up front so
+  /// Flutter's image cache is already warm by the time the user scrolls to
+  /// or taps into them — avoids the "fetch again on every screen" cost.
+  void _precacheImages(List<Product> list) {
+    final urls = <String>{};
+    for (final p in list) {
+      if (p.image.startsWith('http')) urls.add(p.image);
+      for (final v in p.variants) {
+        for (final o in v.options) {
+          if (o.image != null && o.image!.isNotEmpty) urls.add(o.image!);
+        }
+      }
+    }
+    for (final url in urls) {
+      NetworkImage(url).resolve(const ImageConfiguration()).addListener(
+            ImageStreamListener((_, _) {}, onError: (_, _) {}),
+          );
+    }
   }
 
   List<Product> get filteredProducts {

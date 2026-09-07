@@ -4,13 +4,12 @@ import 'package:provider/provider.dart';
 
 import '../state/app_state.dart';
 import '../theme/context_ext.dart';
-import '../widgets/app_bottom_nav.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/hero_banner.dart';
 import '../widgets/product_card.dart';
 import '../widgets/search_field.dart';
 import '../widgets/shop_tabs.dart';
-import '../widgets/theme_toggle_button.dart';
+// import '../widgets/theme_toggle_button.dart';
 import 'product_detail_screen.dart';
 
 class ShopPage extends StatefulWidget {
@@ -37,9 +36,7 @@ class _ShopPageState extends State<ShopPage> {
 
     return Scaffold(
       backgroundColor: c.bg,
-      bottomNavigationBar: const AppBottomNav(),
       body: SafeArea(
-        bottom: false,
         child: Stack(
           children: [
             CustomScrollView(
@@ -49,7 +46,7 @@ class _ShopPageState extends State<ShopPage> {
                     children: [
                       const HeroBanner(),
                       Transform.translate(
-                        offset: const Offset(0, -30),
+                        offset: const Offset(0, -16),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: ShopTabs(
@@ -64,11 +61,11 @@ class _ShopPageState extends State<ShopPage> {
                 ..._tabSlivers(context),
               ],
             ),
-            Positioned(
-              top: 10,
-              right: 12,
-              child: const ThemeToggleButton(),
-            ),
+            // Positioned(
+            //   top: 10,
+            //   right: 12,
+            //   child: const ThemeToggleButton(),
+            // ),
           ],
         ),
       ),
@@ -225,7 +222,7 @@ class _ShopPageState extends State<ShopPage> {
               crossAxisCount: 2,
               mainAxisSpacing: 12,
               crossAxisSpacing: 12,
-              childAspectRatio: 0.72,
+              childAspectRatio: 0.58,
             ),
             delegate: SliverChildBuilderDelegate(
               (context, i) {

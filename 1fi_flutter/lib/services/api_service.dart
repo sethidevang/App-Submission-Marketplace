@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/product.dart';
 
@@ -21,6 +23,7 @@ class ApiService {
   /// pass the Mac's LAN IP via `--dart-define=API_BASE_URL=http://<ip>:4000`
   /// when running on one.
   static const _override = String.fromEnvironment('API_BASE_URL');
+  static const _cacheKey = 'cached_products_v1';
 
   static String get baseUrl {
     if (_override.isNotEmpty) {
@@ -37,7 +40,35 @@ class ApiService {
     if (res.statusCode != 200) {
       throw Exception('Failed to load products (${res.statusCode})');
     }
-    final List<dynamic> data = jsonDecode(res.body) as List<dynamic>;
+    unawaited(_cacheRaw(res.body));
+    return _parse(res.body);
+  }
+
+  /// The last successfully fetched catalog, read straight from disk — used
+  /// to paint the Marketplace instantly on launch instead of a blank
+  /// loading state, while [fetchProducts] refreshes it in the background.
+  Future<List<Product>?> loadCachedProducts() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_cacheKey);
+      if (raw == null) return null;
+      return _parse(raw);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _cacheRaw(String body) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_cacheKey, body);
+    } catch (_) {
+      // Non-fatal — the app just re-fetches over the network next launch.
+    }
+  }
+
+  List<Product> _parse(String body) {
+    final List<dynamic> data = jsonDecode(body) as List<dynamic>;
     return data
         .map((e) => Product.fromJson(e as Map<String, dynamic>))
         .toList();
