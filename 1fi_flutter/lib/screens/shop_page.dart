@@ -143,8 +143,7 @@ class _ShopPageState extends State<ShopPage> {
                 EmptyState(
                   icon: Icons.storefront_outlined,
                   title: "Couldn't load products",
-                  message:
-                      'Check that the local server (npm start) and Postgres are running, then try again.',
+                  message: 'Check your internet connection and try again.',
                   action: FilledButton(
                     onPressed: () => app.loadProducts(),
                     style: FilledButton.styleFrom(
