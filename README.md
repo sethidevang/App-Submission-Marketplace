@@ -2,14 +2,17 @@
 
 Submission for the 1Fi SDE Intern Assignment: a **1Fi Marketplace** section built into the Shop page of a Flutter app styled after the real 1Fi app, backed by a Postgres database.
 
+**The app works out of the box** — it talks to a public API (`https://app-submission-marketplace.vercel.app/api/products`) by default, so `flutter run` on any device or platform needs no local backend setup at all.
+
 ## What's here
 
 - **`1fi_flutter/`** — the Flutter app. Shop page with three tabs (`Top Brands`, `Nearby Stores` — intentionally blank per the assignment brief, and `1Fi Marketplace` — fully built).
-- **`server.js`** — a small Express API (`GET /api/products`) that reads the catalog from Postgres.
+- **`api/products.js`** — the Vercel serverless function (Node) that actually serves the app, using Neon's HTTP driver.
+- **`server.js`** — the original Express version of the same route, for local backend development (see [Running it locally](#running-it-locally)).
 - **`db/`** — `schema.sql` and `seed.sql` for the `products` table.
 - **`shop-page.html`** — an earlier static-HTML prototype of the Marketplace UI, kept for reference; the Flutter app is the actual deliverable.
 
-The database is hosted on [Neon](https://neon.tech) (serverless Postgres), so the API doesn't depend on a locally-running Postgres install — only the Express server itself needs to run somewhere reachable by the app (see [Running it](#running-it) below).
+The database is hosted on [Neon](https://neon.tech) (serverless Postgres) and the API on [Vercel](https://vercel.com), so nothing needs to run on anyone's machine for the app to work.
 
 ## Marketplace feature checklist
 
@@ -27,16 +30,29 @@ The database is hosted on [Neon](https://neon.tech) (serverless Postgres), so th
 ## Architecture
 
 ```
-Flutter app  --HTTP-->  Express (server.js)  --SQL-->  Postgres (Neon)
+Flutter app  --HTTPS-->  Vercel (api/products.js)  --HTTP-->  Neon Postgres
 ```
 
 - **State management**: a single `AppState` (Provider/`ChangeNotifier`) holds the catalog, per-product variant/tenure selections, and search/category filters.
 - **Data flow**: `ApiService.fetchProducts()` hits `/api/products`, caches the raw response to disk (`shared_preferences`), and `AppState.loadProducts()` paints instantly from that cache on launch before quietly refreshing from the network — a transient network blip doesn't blank the screen if there's cached data to fall back on. Every product/variant image is precached right after a successful fetch.
 - **Images**: `ProductImage` resolves, in order — the network photo for the currently selected variant (if that option has one), then the product's base `image` (which may itself be a bundled asset filename or a URL), then a category icon as a last-resort placeholder.
+- **Why two backends**: `api/products.js` (Vercel) is what the app actually talks to. It uses `@neondatabase/serverless`'s HTTP driver rather than a connection pool, because a serverless function is a new short-lived process per invocation — a `pg.Pool` built for a long-running server would open a fresh connection on every cold start and exhaust Neon's connection limit. `server.js` (Express + `pg.Pool`) is the original, kept for local iteration on backend changes before they're deployed.
 
-## Running it
+## Running the app
 
-### 1. Backend (Express + Neon)
+```bash
+cd 1fi_flutter
+flutter pub get
+flutter run
+```
+
+That's it — no environment variables, no local server, no `.env` file needed. `ApiService.baseUrl` defaults to the deployed Vercel API.
+
+## Running it locally
+
+Only needed if you're changing backend/database code and want to test before deploying.
+
+### Backend (Express + Neon)
 
 ```bash
 npm install
@@ -51,20 +67,14 @@ psql "$DATABASE_URL" -f db/schema.sql
 psql "$DATABASE_URL" -f db/seed.sql
 ```
 
-### 2. Flutter app
+### Point the Flutter app at it instead of Vercel
 
 ```bash
-cd 1fi_flutter
-flutter pub get
-flutter run                                            # macOS / web / iOS simulator → localhost:4000 by default
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:4000   # Android emulator
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:4000        # Android emulator
+flutter run --dart-define=API_BASE_URL=http://localhost:4000       # iOS simulator / macOS / web
 ```
 
 **Physical device** (real phone, not a simulator): neither `localhost` nor `10.0.2.2` reach your computer, since the phone is on its own network stack. Two options:
 
-- **USB (Android)**: `adb reverse tcp:4000 tcp:4000`, then run with the default `localhost` base URL — the app then always launches with `--dart-define=API_BASE_URL=http://localhost:4000`.
-- **Wi-Fi (either platform)**: find your computer's LAN IP (`ipconfig getifaddr en0` on macOS) and run with `--dart-define=API_BASE_URL=http://<that-ip>:4000`, making sure the phone and computer are on the same network.
-
-## Known limitation
-
-The Express server isn't deployed anywhere public — it needs to be running (`npm start`) on whatever machine the Flutter app's `API_BASE_URL` points at. For a from-scratch cold run (no local backend available), the app's `EmptyState` error screen with a **Retry** button will explain what's missing.
+- **USB (Android)**: `adb reverse tcp:4000 tcp:4000`, then use `--dart-define=API_BASE_URL=http://localhost:4000`.
+- **Wi-Fi (either platform)**: find your computer's LAN IP (`ipconfig getifaddr en0` on macOS) and use `--dart-define=API_BASE_URL=http://<that-ip>:4000`, making sure the phone and computer are on the same network.
